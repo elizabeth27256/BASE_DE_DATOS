@@ -89,3 +89,17 @@ Inner Join Mesero M on R.id_mesero = M.id_mesero;
 Select *
 From Reservas
 Where CAST(fecha_reserva as date) = CAST(getdate()as date);
+
+--Consulta: Todas las reservas atendidas por un mesero en especifico.--
+Select
+	R.id_reserva,
+	R.fecha_reserva,
+	R.hora,
+	R.numero_personas,
+	C.nombre as Cliente,
+	M.nombre as Mesero,
+	M.area as Area
+From Reservas R 
+Inner Join Cliente C on R.id_cliente = C.id_cliente
+Inner Join Mesero M on R.id_mesero = M.id_mesero
+Where M.nombre = 'Sofia Rivas';
