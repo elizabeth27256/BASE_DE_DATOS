@@ -1,0 +1,91 @@
+create database Restaurante;
+
+Use Restaurante
+
+--Creación de la tabla Cliente--
+create table Cliente(
+	id_cliente int PRIMARY KEY IDENTITY(1,1),
+	nombre VARCHAR(50) NOT NULL,
+	cedula INT,
+	telefono INT,
+	correo VARCHAR (50),
+);
+
+--Creación de la tabla Mesero--
+create table Mesero(
+	id_mesero int PRIMARY KEY IDENTITY(1,1),
+	nombre VARCHAR(50) NOT NULL,
+	area VARCHAR (50),
+);
+
+--Creación de la tabla Reservas--
+create table Reservas(
+	id_reserva int PRIMARY KEY IDENTITY(1,1),
+	id_cliente int,
+	id_mesero int,
+	fecha_reserva date,
+	hora time, 
+	numero_personas int,
+	FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente),
+	FOREIGN KEY (id_mesero) REFERENCES Mesero(id_mesero)
+);
+
+--Insertar info a la tabla Cliente--
+insert into Cliente (nombre, cedula, telefono, correo)
+values
+('Alex Ramirez', '1854712382', '0965312174', 'alex@gmail.com'),
+('Carlos Rocafuerte', '1725462132', '0921242381', 'carlos@gmail.com'),
+('Vanessa Diaz', '1850422146', '0914457892', 'vanessa@gmail.com');
+
+--Insertar info a la tabla Mesero--
+insert into Mesero (nombre, area)
+values
+('Sofia Rivas', 'VIP'),
+('David Torres ', 'Barra'),
+('Joel Gomez', 'Terraza'),
+('Luis Arias', 'Principal');
+
+--Insertar info a la tabla Reservas--
+insert into Reservas (id_cliente, id_mesero, fecha_reserva, hora, numero_personas)
+values
+('1', '2', '2025-06-04', '20:00', '5'),
+('2', '3', '2025-06-10', '17:00', '7'),
+('3', '1', '2025-06-07', '21:00', '2');
+
+--Eliminacion de un meseo con delete.--
+Select *
+From Mesero
+Where id_mesero = 4;
+
+Delete From Mesero
+Where id_mesero = 4;
+
+--UPDATE en la tabla reservas.--
+Update Reservas
+set fecha_reserva = '2025-06-04',
+	hora = '19:30'
+where id_reserva = 1;
+
+Update Reservas
+set fecha_reserva = '2025-06-09',
+	hora = '21:30'
+where id_reserva = 3;
+
+select*from Reservas
+
+--Consulta: Listar todas las reservas con nombres de cliente, mesero.--
+Select
+	R.id_reserva,
+	C.nombre as Cliente,
+	M.nombre as Mesero,
+	R.fecha_reserva,
+	R.hora,
+	R.numero_personas
+From Reservas R 
+Inner Join Cliente C on R.id_cliente = C.id_cliente
+Inner Join Mesero M on R.id_mesero = M.id_mesero;
+
+--Consulta: Mostrar todas las reservas programadas para hoy.--
+Select *
+From Reservas
+Where CAST(fecha_reserva as date) = CAST(getdate()as date);
