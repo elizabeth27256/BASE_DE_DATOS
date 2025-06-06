@@ -1,0 +1,96 @@
+SELECT 
+ArOrig.Ciudad AS Ciudad_Origen , 
+ArDest.Ciudad AS Ciudad_Destino,   
+V.FechaLlegada,
+V.FechaSalida
+FROM  Vuelo V												
+inner join Aeropuerto ArOrig ON V.OrigenID = ArOrig.ID		--relacion de eropuerto origen con vuelo origen
+inner join Aeropuerto ArDest ON V.DestinoID = ArDest.ID
+WHERE ArOrig.Ciudad = 'Quito' and ArDest.Ciudad = 'Miami'	--condicion de quito a miami
+
+
+					/*Pregunta 2*/
+
+SELECT V.CodigoVuelo,
+V.Estado,
+ArOrig.Ciudad AS Ciudad_Origen , 
+ArDest.Ciudad AS Ciudad_Destino,   
+V.FechaLlegada,
+V.FechaSalida
+FROM Vuelo V
+join Aeropuerto ArOrig ON V.OrigenID = ArOrig.ID			--union de origen vuelo a origen ciudad
+join Aeropuerto ArDest ON V.DestinoID = ArDest.ID
+
+
+
+					/*Pregunta 3*/
+
+SELECT NombreCompleto, Clase, Asiento, V.CodigoVuelo
+FROM Pasajero P
+inner join Boleto B ON P.ID = B.PasajeroID					--union de pasajero con el boleto pasajero
+inner join Vuelo V ON B.VueloID = V.ID						--union de vuelo vuelo a boleto vuelo
+
+
+
+					/*Pregunta 4*/
+
+SELECT  
+Pil.NombreCompleto AS Piloto, 
+ArOrig.Ciudad AS Ciudad_Origen , 
+ArDest.Ciudad AS Ciudad_Destino,   
+PaisOrigen, 
+Estado, 
+CodigoVuelo
+FROM Vuelo V
+inner join Piloto Pil ON V.PilotoID = Pil.ID				--union piloto con vuelo piloto
+inner join Aeropuerto ArOrig ON V.OrigenID = ArOrig.ID		--union de origen vuelo a origen ciudad
+inner join Aeropuerto ArDest ON V.DestinoID = ArDest.ID
+inner join Avion Av ON V.AvionID = Av.ID					--union de vuelo avion con avion
+inner join Aerolinea Ae ON Av.AerolineaID=Ae.ID
+WHERE Pil.NombreCompleto = 'Carlos Pérez'					--condicion para un solo piloto
+
+
+					/*Pregunta 5*/
+
+SELECT V.CodigoVuelo,
+COUNT(B.ID) AS Boleto_Vendido								--se usa la fucion COUNT para contar los voletos por vuelo
+FROM Vuelo V
+inner join Boleto B ON B.VueloID = V.ID						--union de boleto vuelo con vuelo
+GROUP BY V.CodigoVuelo										--agrupacion por codigo vuelo
+Order BY Boleto_Vendido ASC;								--se ordena por boletos vendidos de forma ascendente
+
+
+					/*Pregunta 6*/
+
+
+SELECT			
+V.CodigoVuelo,
+sum(Precio) AS Recaudacion_Total_por_Vuelo					--se usa la funcion SUM para sumar los precios de recaudacion 
+FROM Vuelo V
+inner join Boleto B ON B.VueloID = V.ID						--union de boleto con vuelo
+GROUP BY CodigoVuelo
+
+
+					/*Pregunta 7*/
+
+SELECT  
+V.ID as Vuelos
+FROM Boleto B
+inner join Vuelo V ON V.ID = B.VueloID						--union de vuelo con boleto vuelo
+left join Avion Av ON Av.ID = V.AvionID						--union de avion con vuelo avion
+GROUP BY Av.Capacidad, V.ID
+HAVING COUNT(B.ID) > Av.Capacidad							--uso la funcion COUNT para establecer la condicion de #boleto > a #capacidad Avion
+
+					/*Pregunta 8*/
+--agregamos la fecha de salida
+--update Vuelo set FechaSalida = '2025-06-01 09:30:00.000' WHERE ID=2
+--update Vuelo set PilotoID = 1 WHERE ID =  2
+
+SELECT
+Pil.NombreCompleto,
+cast(V.FechaSalida AS DATE) AS FechaSalida,					--uso de la funcion cast para convertir un fechaSalida en una fecha
+COUNT(Pil.ID) AS CuentaDeVuelos								--uso de funcion  count para contar el id del piloto que se repite
+FROM Vuelo V
+inner join Piloto Pil ON  V.PilotoID=Pil.ID 
+GROUP BY  cast(V.FechaSalida AS DATE),  Pil.NombreCompleto	-- agrupando por nombre y conversion
+HAVING COUNT(*) > 1
