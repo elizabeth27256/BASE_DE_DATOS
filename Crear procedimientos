@@ -1,0 +1,155 @@
+/*
+								PONTIFICIA UNIVERSIDAD CATOLICA DEL ECUADOR 
+				Nombre: Elizabeth Mites
+				Materia: Base de Datos II
+				Parcial I 
+				Consultas de la base de datos SistemasVuelos 
+*/
+
+--Pregunta1. VISTA: Resumen de vuelos programados---
+CREATE VIEW VistaResumenVuelosProgramados AS
+SELECT
+    V.ID AS VueloID,
+	A1. Nombre AS Origen,
+	A2. Nombre AS Destino,
+    P.NombreCompleto AS Piloto,
+	A.Modelo AS Avion,
+    V.FechaSalida,
+    V.Estado
+FROM Vuelo V
+INNER JOIN Piloto P ON V.PilotoID = P.ID
+INNER JOIN Aeropuerto A1 ON V.OrigenID = A1.ID
+INNER JOIN Aeropuerto A2 ON V.OrigenID = A2.ID
+INNER JOIN Avion A ON V.AvionID = A.ID
+WHERE V.Estado = 'Programado';
+GO
+---Pregunta2. PROCEDIMIENTO: Registrar nuevo vuelo---
+CREATE PROCEDURE RegistrarNuevoVuelo
+	@CodigoVuelo VARCHAR(10),
+	@OrigenID INT,
+	@DestinoID INT,
+	@AvionID INT,
+	@PilotoID INT,
+	@FechaSalida DATE,
+	@FechaLlegada DATE,
+	@Estado VARCHAR(20)
+AS
+BEGIN 
+	INSERT INTO  Vuelo(CodigoVuelo,OrigenID,DestinoID,AvionID,PilotoID,FechaSalida,FechaLlegada,Estado)
+	VALUES (@CodigoVuelo,@OrigenID, @DestinoID, @AvionID, @PilotoID, @FechaSalida,@FechaLlegada,@Estado);
+END;
+GO 
+EXEC RegistrarNuevoVuelo 'LA205', 1,1,2,3, '03/16/2026', '03/16/2026', 'Programado'
+
+SELECT * FROM Vuelo
+
+---Pregunta3. FUNCIÓN: Calcular edad del pasajero--
+CREATE FUNCTION fn_Calcular_Edad (@FechaNacimiento DATE)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Edad INT;
+
+    SET @Edad = DATEDIFF(YEAR, @FechaNacimiento, GETDATE());
+
+    IF (MONTH(@FechaNacimiento) > MONTH(GETDATE()))
+        OR (MONTH(@FechaNacimiento) = MONTH(GETDATE()) AND DAY(@FechaNacimiento) > DAY(GETDATE()))
+        SET @Edad = @Edad - 1;
+
+    RETURN @Edad;
+END;
+
+SELECT 
+    NombreCompleto, 
+    FechaNacimiento,
+    dbo.fn_Calcular_Edad(FechaNacimiento) AS Edad
+FROM Pasajero;
+
+---Pregunta3. CONSULTA A: Top 5 vuelos con mayor recaudación---
+SELECT TOP 5
+    V.ID AS VueloID,
+    V.FechaSalida,
+    A1.Nombre AS Origen,
+    A2.Nombre AS Destino,
+    SUM(B.Precio) AS RecaudacionTotal
+FROM Boleto B
+INNER JOIN Vuelo V ON B.VueloID = V.ID
+INNER JOIN Aeropuerto A1 ON V.OrigenID = A1.ID
+INNER JOIN Aeropuerto A2 ON V.DestinoID = A2.ID
+GROUP BY 
+    V.ID, 
+    V.FechaSalida, 
+    A1.Nombre, 
+    A2.Nombre
+ORDER BY RecaudacionTotal DESC;
+
+---Pregunta4. CONSULTA B: Pasajeros frecuentes (más de 3 boletos)
+SELECT 
+    P.ID AS PasajeroID,
+    P.NombreCompleto,
+    COUNT(B.ID) AS TotalBoletos
+FROM Pasajero P
+INNER JOIN Boleto B ON P.ID = B.PasajeroID
+GROUP BY P.ID, P.NombreCompleto
+HAVING COUNT(B.ID) > 3
+ORDER BY TotalBoletos DESC;
+
+--Pregunta5. CREACIÓN de la tabla ESCALAS--
+CREATE TABLE Escalas (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    VueloID INT NOT NULL,
+    AeropuertoID INT NOT NULL,
+    Orden INT NOT NULL, 
+    HoraLlegada DATETIME,
+    HoraSalida DATETIME,
+    FOREIGN KEY (VueloID) REFERENCES Vuelo(ID),
+);
+
+INSERT INTO Escalas (VueloID, AeropuertoID, Orden, HoraLlegada, HoraSalida)
+VALUES (1, 2, 1, '2025-06-01 09:00:00', '2025-06-01 09:45:00');
+
+INSERT INTO Escalas (VueloID, AeropuertoID, Orden, HoraLlegada, HoraSalida)
+VALUES (2, 3, 1, '2025-06-01 10:00:00', '2025-06-01 10:30:00');
+
+
+INSERT INTO Escalas (VueloID, AeropuertoID, Orden, HoraLlegada, HoraSalida)
+VALUES (2, 1, 2, '2025-06-01 11:00:00', '2025-06-01 11:15:00');
+
+INSERT INTO Escalas (VueloID, AeropuertoID, Orden, HoraLlegada, HoraSalida)
+VALUES (3, 2, 1, '2025-06-03 15:00:00', '2025-06-03 15:30:00');
+
+--Pregunta6. -- CONSULTA C: Vuelos con escalas intermedias 
+SELECT 
+    V.ID AS VueloID,
+    V.FechaSalida,
+    A1.Nombre AS Origen,
+    A2.Nombre AS Destino,
+    E.Orden AS NumeroEscala,
+    AE.Nombre AS AeropuertoEscala,
+    E.HoraLlegada,
+    E.HoraSalida
+FROM Vuelo V
+INNER JOIN Aeropuerto A1 ON V.OrigenID = A1.ID
+INNER JOIN Aeropuerto A2 ON V.DestinoID = A2.ID
+INNER JOIN Escalas E ON V.ID = E.VueloID
+INNER JOIN Aeropuerto AE ON E.AeropuertoID = AE.ID
+ORDER BY V.ID, E.Orden;
+
+---Pregunta7. -- CONSULTA D: Promedio de ocupación por avión---
+SELECT 
+    A.ID AS AvionID,
+    A.Modelo,
+    COUNT(B.ID) AS TotalBoletosVendidos,
+    COUNT(V.ID) * A.Capacidad AS CapacidadTotal,
+    CONCAT(FORMAT(COUNT(B.ID) * 100.0 / NULLIF(COUNT(V.ID) * A.Capacidad, 0),'N2'),'%') AS PromedioOcupacion
+FROM Avion A
+INNER JOIN Vuelo V ON A.ID = V.AvionID
+LEFT JOIN Boleto B ON V.ID = B.VueloID
+GROUP BY A.ID, A.Modelo, A.Capacidad;
+
+---Pregunta8. -- CONSULTA E: Recaudación por clase de boleto.
+SELECT 
+    B.Clase,
+    SUM(B.Precio) AS RecaudacionTotal
+FROM Boleto B
+GROUP BY B.Clase;
