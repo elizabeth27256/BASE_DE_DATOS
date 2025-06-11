@@ -53,4 +53,42 @@ end try
 begin catch
 	rollback
 	select ERROR_NUMBER() as NotError, ERROR_MESSAGE() as Mensaje, ERROR_LINE () as Linea
-end catch
+end catcH
+
+***********************TIENDA**********************
+create database Tienda
+use Tienda
+
+----Creacion de Tablas
+create table Cliente( 
+	id_cliente int primary key IDENTITY (1,1),
+	nombre nvarchar(100) not null,
+	correo nvarchar(100) unique,
+	ciudad nvarchar(50)
+);
+
+
+CREATE TABLE Producto (
+    id_producto INT PRIMARY KEY IDENTITY(1,1),
+    nombre_producto NVARCHAR(100) not null,
+    Precio DECIMAL(10,2) not null,
+	stock int not null
+);
+
+CREATE TABLE Ventas (
+    id_venta INT PRIMARY KEY IDENTITY(1,1),
+	id_cliente int not null, 
+    fecha_venta DATE not null,
+	FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
+);
+
+Create table Detalle_Venta(
+	id_detalle int IDENTITY (1,1) primary key,
+	id_venta int not null,
+	id_producto int not null,
+	cantidad int not null,
+	precio_unitario decimal (10,2) not null,
+	total_linea as (cantidad * precio_unitario) persisted, 
+	FOREIGN KEY (id_venta) REFERENCES Ventas(id_venta),
+	FOREIGN KEY (id_producto) REFERENCES Producto(id_producto)
+)
