@@ -1,0 +1,56 @@
+create database Ejemplo2
+use Ejemplo2
+
+----Creacion de Tablas
+create table Cliente( 
+	ClienteID int primary key IDENTITY (1,1),
+	nombre varchar(100)
+);
+
+
+CREATE TABLE Producto (
+    ProductoID INT PRIMARY KEY IDENTITY(1,1),
+    Nombre VARCHAR(100),
+    Precio DECIMAL(10,2)
+);
+
+CREATE TABLE Venta (
+    VentaID INT PRIMARY KEY IDENTITY(1,1),
+    Fecha DATETIME DEFAULT GETDATE(),
+    Cantidad INT,
+    ProductoID INT,
+	ClienteID INT,
+    FOREIGN KEY (ProductoID) REFERENCES Producto(ProductoID),
+	FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID)
+);
+
+---Modificar la tabla Cliente--
+alter table Cliente add edad int
+update Cliente set edad = 20
+select*from Cliente
+
+---Manejo de Errores--
+begin try 
+	begin transaction
+	insert into Cliente (nombre) values ('Juan Perez')
+	update Cliente set edad = 'prueba' where clienteID = 1
+	delete from Cliente where clienteID = 4
+	commit
+end try
+begin catch
+	rollback
+	select ERROR_NUMBER() as NotError, ERROR_MESSAGE() as Mensaje, ERROR_LINE () as Linea
+end catch
+
+---Manejod errores Producto--
+begin try 
+	begin transaction
+	insert into Cliente (nombre) values ('Juan Perez')
+	update Cliente set edad = 'prueba' where clienteID = 1
+	delete from Cliente where clienteID = 4
+	commit
+end try
+begin catch
+	rollback
+	select ERROR_NUMBER() as NotError, ERROR_MESSAGE() as Mensaje, ERROR_LINE () as Linea
+end catch
