@@ -1,0 +1,18 @@
+create database Ejemplo1
+use Ejemplo1
+
+create table Cliente (clienteID int primary key IDENTITY (1,1), nombre varchar(100))
+
+select*from Cliente
+
+begin transaction
+insert into Cliente (nombre) values ('Juan Perez')
+update Cliente set nombre = 'Ana Perez' where clienteID = 1
+delete from Cliente where clienteID = 4
+
+commit  sirve para guardar los cambios hechos
+rollback sirve para regresar
+
+---Borrar una transaccion---
+begin transaction
+drop table Cliente
