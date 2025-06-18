@@ -16,3 +16,17 @@ rollback sirve para regresar
 ---Borrar una transaccion---
 begin transaction
 drop table Cliente
+
+-----*******CLASE MIERCOLES******-----
+SELECT * FROM cuentas
+
+begin transaction 
+	insert into cuentas(id, titular, saldo) values (3,'Marco Arias', 500);	
+	update cuentas set saldo = 1000 where id = 1;
+	delete from cuentas where id = 2;
+
+begin transaction
+	drop table cuentas 
+
+commit transaction
+rollback transaction
