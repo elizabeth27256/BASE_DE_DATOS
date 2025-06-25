@@ -68,3 +68,33 @@ END;
 select * from auditoria_empleados 
 select * from empleados 
 update empleados set salario = 9000 where id = 2
+
+------------Auditoria2------------
+drop table auditoria_empleados
+
+create table auditoria_empleados (
+	usuario varchar(50),
+	id_empleado int, 
+	saldo_ant float,
+	saldo_nuevo float,
+	fecha datetime
+)
+
+create or alter trigger trg_auditoria
+	on empleados 
+after update 
+as 
+begin 
+	insert into auditoria_empleados (usuario, id_empleado, saldo_ant, saldo_nuevo, fecha)
+	select system_user, i.id, d.salario, i.salario, GETDATE()
+	from deleted d
+	join inserted i on d.id = i.id
+	where 
+	d.salario <> i.salario
+END;
+
+
+select * from auditoria_empleados 
+select * from empleados 
+update empleados set salario = 1100 where id = 1
+
