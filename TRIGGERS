@@ -1,0 +1,70 @@
+create trigger trg_insert_cliente 
+on clientes
+after insert 
+as 
+begin 
+	print 'Nuevo cliente insertado';
+end;
+select * from clientes
+insert into clientes (id, nombre, ciudad) values (4,'Marco Lopez', 'Manta')
+
+----------------------ALERTA DE MODIFICACION-----------
+create or alter trigger trg_update_cliente 
+on clientes
+after update 
+as 
+begin 
+	print 'Este cliente fue modificado';
+end;
+
+select * from clientes 
+update clientes set ciudad = ('Manta') where id = 1;
+update clientes set nombre = ('Mayra Alban') where id = 1
+
+-------DELETE----
+create or alter trigger trg_delete_cliente 
+on clientes
+after delete 
+as 
+begin 
+	print 'Este cliente fue eliminado';
+end;
+
+select * from clientes 
+
+delete from clientes where id = 4
+
+---------Actualizacion log -----
+create table log_cambios (id int primary key identity(1,1), fecha datetime, descripcion varchar (500))
+
+create or alter trigger trg_update_saldo
+on cuentas 
+after update 
+as 
+begin 
+	insert into log_cambios(fecha, descripcion)
+	select getdate(), 'EL SALDO FUE MODIFICADO';
+END 
+
+select * from cuentas
+update cuentas set saldo = 2000 where id = 2
+select * from log_cambios 
+
+
+------------Auditoria------------
+
+create table auditoria_empleados (usuario varchar(50), fecha datetime, accion varchar (200))
+
+create or alter trigger trg_auditoria
+	on empleados 
+after update 
+as 
+begin 
+	insert into auditoria_empleados (usuario, fecha, accion)
+	select system_user, getdate (), 'Actulización';
+END;
+
+
+select * from auditoria_empleados 
+select * from empleados 
+update empleados set salario = 9000 where id = 2
