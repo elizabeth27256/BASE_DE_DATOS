@@ -1,0 +1,55 @@
+---Creacion de tabla Usuario Plataforma---
+create table usuario_plataforma(
+	id_usuario int PRIMARY KEY IDENTITY(1,1),
+	nombre VARCHAR(50) not null,
+	correo varchar(50) unique not null,
+	contrasena_hash varchar (50) not null
+);
+
+create table estudiantes(
+	id_estudiante int PRIMARY KEY IDENTITY(1,1),
+	nombre VARCHAR(50) not null,
+	cedula int unique not null,
+	correo_institucional varchar(50) unique not null,
+	carrera varchar (50) not null
+);
+
+create table credenciales(
+	id_credencial int PRIMARY KEY IDENTITY(1,1),
+	id_estudiante int,
+	tipo_credencial varchar(50) not null,
+	descripcion varchar(100) not null,
+	fecha_emision datetime not null,
+	FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante)
+);
+
+create table auditoria(
+	id_auditoria int PRIMARY KEY IDENTITY(1,1),
+	id_credencial int,
+	accion varchar(50) not null,
+	fecha datetime not null,
+	usuario_responsable int unique not null,
+	observaciones varchar (50),
+	FOREIGN KEY (id_credencial) REFERENCES credenciales(id_credencial),
+	FOREIGN KEY (usuario_responsable) REFERENCES usuario_plataforma(id_usuario)
+);
+
+
+---Creacion de usuarios de base de datos y permisos---
+CREATE LOGIN admin_edutech WITH PASSWORD = '12345';
+CREATE LOGIN emisor_cer WITH PASSWORD = '12345';
+CREATE LOGIN audito_sistema WITH PASSWORD = '12345';
+
+--Permisos Usuarios--
+GRANT SELECT on usuario_plataforma TO admin_edutech
+GRANT INSERT on estudiantes TO admin_edutech
+GRANT UPDATE on credenciales TO admin_edutech
+GRANT DELETE on auditoria TO admin_edutech
+GRANT CREATE on auditoria TO admin_edutech
+GRANT DROP on auditoria TO admin_edutech
+
+-------
+GRANT SELECT on usuario_plataforma TO emisor_cer
+GRANT INSERT on estudiantes TO admin_edutech
+GRANT UPDATE on credenciales TO admin_edutech
+GRANT DELETE on auditoria TO admin_edutech
